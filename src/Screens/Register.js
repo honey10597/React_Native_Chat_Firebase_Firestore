@@ -17,11 +17,16 @@ const Register = (props) => {
             .createUserWithEmailAndPassword(email, password)
             .then(async (result) => {
 
+                console.log(result, 'createUserWithEmailAndPasswordcreateUserWithEmailAndPassword');
+
                 await firestore().collection("USERS").add({
+                    _id: result?.user?.uid,
                     email: email,
                     username: name,
                     password: password,
                     displayName: name,
+                    isAdmin: false,
+                    isBlocked: false,
                     photoURL: "https://statinfer.com/wp-content/uploads/dummy-user.png",
                 });
 
@@ -30,15 +35,6 @@ const Register = (props) => {
                     photoURL: "https://statinfer.com/wp-content/uploads/dummy-user.png",
                 });
 
-                // await firestore().collection('USERS').doc(result.user.uid).set({
-                //     name: name,
-                //     displayName: "name",
-                //     email: result.user.email,
-                //     uid: result.user.uid,
-                //     pic: "https://statinfer.com/wp-content/uploads/dummy-user.png",
-                //     photoURL: "https://statinfer.com/wp-content/uploads/dummy-user.png",
-                //     status: "online"
-                // })
                 console.log(result, "resresresresresres");
 
                 alert('User account created & signed in!');
