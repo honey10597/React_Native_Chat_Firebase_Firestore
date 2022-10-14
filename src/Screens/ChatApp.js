@@ -58,26 +58,24 @@ const ChatApp = (props) => {
     // }, [messages])
 
     useEffect(() => {
-        // const _clone = fullChat.map((item, index) => {
-        //     const cu = allUsersData.find((val) => val.id == item?.user?.id ? val : null)
-        //     console.log(cu, "messagesmessagesmessagesmessages", allUsersData);
-        //     if (cu) {
-        //         item.user = cu
-        //         item.user.name = item.name
-        //     } 
-        //     return item
-        // })
+        const _clone = fullChat.map((item, index) => {
+            const cu = allUsersData.find((val) => val.id == item?.user?.id ? val : null)
+            console.log(cu, "messagesmessagesmessagesmessages", allUsersData);
+            if (cu) {
+                item.user = cu
+                item.user.name = item.name
+            }
+            return item
+        })
         // // setMessages(_clone)
 
-        // dispatch({
-        //     type: "ALL_MESSAGES",
-        //     payload: _clone,
-        // }); 
+        dispatch({
+            type: "ALL_MESSAGES",
+            payload: _clone,
+        });
 
-        const cu = allUsersData.find((val) => val.id == user?.uid ? val : null)
-        setCurrentUserStaus(cu)
-        console.log(allUsersData, "allUsersDataallUsersData", user);
-        console.log(cu, "cucucucucucucucu");
+        // const cu = allUsersData.find((val) => val.id == user?.uid ? val : null)
+        // setCurrentUserStaus(cu) 
     }, [allUsersData])
 
     useEffect(() => {
@@ -139,35 +137,41 @@ const ChatApp = (props) => {
         setMessages(previousMessages =>
             GiftedChat.append(previousMessages, messages),
         );
-        if (text) {
-            firestore()
-                .collection('USERS')
-                .doc(user.uid)
-                .onSnapshot(async (res) => {
 
-                    const userDa = res?._data
+        const cu = allUsersData.find((val) => val.id == user?.uid ? val : null)
+        console.log(cu, 'cucucucu', allUsersData);
+        // firestore()
+        //     .collection('USERS')
+        //     .doc(user.uid)
+        //     .onSnapshot(async (res) => {
 
-                    const obj = {
-                        text,
-                        createdAt: new Date().getTime(),
-                        name: userDa?.displayName || userDa?.email,
-                        displayName: userDa?.displayName || userDa?.email,
-                        user: {
-                            _id: userDa._id,
-                            displayName: userDa?.displayName || userDa?.email,
-                            name: userDa?.displayName || userDa?.email,
-                            avatar: userDa?.photoURL,
-                        }
-                    }
-                    await firestore()
-                        .collection('MESSAGE_THREADS')
-                        .doc(thread._id)
-                        .collection('MESSAGES')
-                        .add(obj).then((res) => console.log(res, "rrrrrrrrrrrr =>", text))
-                        .catch((err) => console.log(err, "errorerror"))
-                })
+        // const userDa = res?._data
+        const userDa = cu
+
+        const obj = {
+            text,
+            createdAt: new Date().getTime(),
+            name: userDa?.displayName || userDa?.email,
+            displayName: userDa?.displayName || userDa?.email,
+            user: {
+                _id: userDa._id,
+                displayName: userDa?.displayName || userDa?.email,
+                name: userDa?.displayName || userDa?.email,
+                // avatar: userDa?.photoURL,
+                avatar: userDa?.avatar,
+            }
         }
-    }, []);
+
+        console.log(obj, "objobjobjobjobjobj");
+
+        await firestore()
+            .collection('MESSAGE_THREADS')
+            .doc(thread._id)
+            .collection('MESSAGES')
+            .add(obj).then((res) => console.log(res, "rrrrrrrrrrrr =>", text))
+            .catch((err) => console.log(err, "errorerror"))
+    }, [])
+    // }, []);
 
     const renderBubble = (props) => {
         return (
@@ -220,7 +224,7 @@ const ChatApp = (props) => {
                     textInputStyle={{
                         color: "black"
                     }}
-                    // disableComposer={surrentUserStatus?.isBlocked}
+                // disableComposer={surrentUserStatus?.isBlocked}
                 />
 
                 <Text style={{ fontSize: 24 }}>{"Is Blocked :- " + surrentUserStatus?.isBlocked}</Text>
