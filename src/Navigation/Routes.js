@@ -17,34 +17,27 @@ function Routes() {
                 <Stack.Screen
                     name="StartPage"
                     component={StartPage}
-                    options={{
-                        headerShown: false
-                    }}
+                    options={{ headerShown: false }}
                 />
                 <Stack.Screen
                     name="Login"
                     component={Login}
-                    options={{
-                        headerShown: false
-                    }}
+                    options={{ headerShown: false }}
                 />
-                <Stack.Screen name="Register"
+                <Stack.Screen
+                    name="Register"
                     component={Register}
-                    options={{
-                        headerShown: false
-                    }}
+                    options={{ headerShown: false }}
                 />
-                <Stack.Screen name="ChatRoom"
+                <Stack.Screen
+                    name="ChatRoom"
                     component={ChatRoom}
-                    options={{
-                        headerShown: false
-                    }}
+                    options={{ headerShown: false }}
                 />
-                <Stack.Screen name="ChatApp"
+                <Stack.Screen
+                    name="ChatApp"
                     component={ChatApp}
-                    options={{
-                        headerShown: false
-                    }}
+                    options={{ headerShown: false }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

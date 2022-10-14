@@ -3,7 +3,7 @@ import React, { Component, useEffect, useState } from 'react'
 import auth from '@react-native-firebase/auth';
 
 const Login = (props) => {
-    const [email, setEmail] = useState('Admin@yopmail.com');
+    const [email, setEmail] = useState('honey@yopmail.com');
     const [password, setPassword] = useState('123456');
 
     const signin = () => {

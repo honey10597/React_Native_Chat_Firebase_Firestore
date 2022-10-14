@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
     FlatList,
     Text,
@@ -9,30 +9,67 @@ import {
     SafeAreaView
 } from 'react-native';
 
-import firestore from '@react-native-firebase/firestore'
+import firestore from '@react-native-firebase/firestore';
+
+import store from "../Redux/store";
+const { dispatch } = store;
 
 const ChatRoom = (props) => {
+
     const [threads, setThreads] = useState([])
     const [roomName, setRoomName] = useState('');
+    const [allUsers, setAllUsers] = useState([])
+
+    useLayoutEffect(() => {
+        const unsubscribe =
+            firestore()
+                .collection('USERS')
+                .onSnapshot((querySnapshot) => {
+                    const threads = querySnapshot.docs.map(item => {
+                        console.log(item?._data, 'item?._dataitem?._data');
+                        let obj = {
+                            displayName: item?._data?.displayName,
+                            email: item?._data?.email,
+                            isAdmin: item?._data?.isAdmin,
+                            isBlocked: item?._data?.isBlocked,
+                            avatar: item?._data?.photoURL,
+                            username: item?._data?.username,
+                            id: item?._data?.id,
+                            _id: item?._data?._id,
+                        }
+                        return obj;
+                    })
+
+                    console.log(threads, "threadsthreadsthreadsthreadsthreads");
+
+                    dispatch({
+                        type: "SAVE_ALL_USERS",
+                        payload: threads,
+                    });
+
+                    // setAllUsers(threads)
+                })
+        return () => unsubscribe()
+    }, [])
 
     useEffect(() => {
-        const unsubscribe = firestore()
-            .collection('MESSAGE_THREADS')
-            .orderBy('latestMessage.createdAt', 'desc')
-            .onSnapshot(querySnapshot => {
-                const threads = querySnapshot.docs.map(documentSnapshot => {
-                    return {
-                        _id: documentSnapshot.id,
-                        name: '',
-                        latestMessage: { text: '' },
-                        ...documentSnapshot.data()
-                    }
+        const unsubscribe =
+            firestore()
+                .collection('MESSAGE_THREADS')
+                .orderBy('latestMessage.createdAt', 'desc')
+                .onSnapshot(querySnapshot => {
+                    const threads = querySnapshot.docs.map(documentSnapshot => {
+                        return {
+                            _id: documentSnapshot.id,
+                            name: '',
+                            latestMessage: { text: '' },
+                            ...documentSnapshot.data()
+                        }
+                    })
+
+                    setThreads(threads)
+                    console.log(threads, "threadsthreads")
                 })
-
-                setThreads(threads)
-                console.log(threads, "threadsthreads")
-            })
-
         return () => unsubscribe()
     }, [])
 
@@ -58,10 +95,10 @@ const ChatRoom = (props) => {
                     createdAt: new Date().getTime(),
                     system: true
                 })
+                setRoomName("")
             }).catch((error) => {
                 console.log(error, "errorerror");
             })
-
     }
 
     return (
@@ -77,7 +114,9 @@ const ChatRoom = (props) => {
                 keyExtractor={item => item._id}
                 renderItem={({ item }) => (
                     <TouchableOpacity
-                        onPress={() => props.navigation.navigate('ChatApp', { thread: item })}>
+                        onPress={() => props.navigation.navigate('ChatApp', {
+                            thread: item,
+                        })}>
                         <View style={styles.row}>
                             <View style={styles.content}>
                                 <View style={styles.header}>
@@ -97,6 +136,7 @@ const ChatRoom = (props) => {
                 marginTop: 32,
                 color: "black"
             }}>{"Create Room"}</Text>
+
             <TextInput
                 onChangeText={(val) => setRoomName(val)}
                 placeholder={"Room Name"}
