@@ -1,6 +1,7 @@
 const initial_state = {
     alUsersInRed: [],
-    allChats: []
+    allChats: [],
+    currentUserData: {}
 }
 
 export default function (state = initial_state, action) {
@@ -15,6 +16,10 @@ export default function (state = initial_state, action) {
             const data = action.payload;
             console.log(action, "ALL_MESSAGESALL_MESSAGES");
             return { ...state, allChats: data };
+        }
+        case "CURRENT_USER_DATA": {
+            const data = action.payload;
+            return { ...state, currentUserData: data };
         }
         default: {
             return { ...state }

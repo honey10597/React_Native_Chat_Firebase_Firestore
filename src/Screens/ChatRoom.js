@@ -10,15 +10,18 @@ import {
 } from 'react-native';
 
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 import store from "../Redux/store";
 const { dispatch } = store;
 
 const ChatRoom = (props) => {
 
+    const user = auth().currentUser.toJSON()
+
     const [threads, setThreads] = useState([])
     const [roomName, setRoomName] = useState('');
-    const [allUsers, setAllUsers] = useState([])
+    const [currentUserData, setCurrentUserData] = useState({})
 
     useLayoutEffect(() => {
         const unsubscribe =
@@ -47,7 +50,14 @@ const ChatRoom = (props) => {
                         payload: threads,
                     });
 
-                    // setAllUsers(threads)
+
+                    const c_usr = threads.find((val) => val.id == user?.uid ? val : null)
+                    setCurrentUserData(c_usr)
+
+                    dispatch({
+                        type: "CURRENT_USER_DATA",
+                        payload: c_usr,
+                    });
                 })
         return () => unsubscribe()
     }, [])
@@ -90,11 +100,11 @@ const ChatRoom = (props) => {
             })
             .then(docRef => {
                 console.log(docRef, "docRef");
-                docRef.collection('MESSAGES').add({
-                    text: `${roomName} created. Welcome!`,
-                    createdAt: new Date().getTime(),
-                    system: true
-                })
+                // docRef.collection('MESSAGES').add({
+                //     text: `${roomName} created. Welcome!`,
+                //     createdAt: new Date().getTime(),
+                //     system: true
+                // })
                 setRoomName("")
             }).catch((error) => {
                 console.log(error, "errorerror");
@@ -108,7 +118,6 @@ const ChatRoom = (props) => {
             paddingHorizontal: 16
         }}>
             <SafeAreaView />
-
             <FlatList
                 data={threads}
                 keyExtractor={item => item._id}
@@ -116,6 +125,7 @@ const ChatRoom = (props) => {
                     <TouchableOpacity
                         onPress={() => props.navigation.navigate('ChatApp', {
                             thread: item,
+                            currentUserData: currentUserData
                         })}>
                         <View style={styles.row}>
                             <View style={styles.content}>
