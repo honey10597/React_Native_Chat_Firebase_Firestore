@@ -30,20 +30,21 @@ const ChatApp = (props) => {
 
     const msgListRef = useRef(null)
 
-    console.log(currentUserData, "currentUserDatacurrentUserDatacurrentUserDatacurrentUserData");
+    // console.log(currentUserData, "currentUserDatacurrentUserDatacurrentUserDatacurrentUserData");
 
     const allUsersData = useSelector((state) => state.alUsersInRed)
     const fullChat = useSelector((state) => state.allChats)
     const currentUserDa = useSelector((state) => state.currentUserData)
 
-    console.log(currentUserDa, "surrentUserStatussurrentUserStatussurrentUserStatus");
+    // console.log(currentUserDa, "surrentUserStatussurrentUserStatussurrentUserStatus");
 
     const [surrentUserStatus, setCurrentUserStaus] = useState(currentUserData)
     const [currentMsg, setCurrentMsg] = useState("")
     const [messages, setMessages] = useState([]);
     const [holdCurrentMsgAction, setHoldCurrentMsgAction] = useState(null)
+    const [allusers, setAllusers] = useState(allUsersData || [])
 
-    console.log(surrentUserStatus, "surrentUserStatussurrentUserStatus");
+    // console.log(surrentUserStatus, "surrentUserStatussurrentUserStatus");
 
     // console.log(allUsersData, "allUsersDataallUsersData");
 
@@ -53,7 +54,7 @@ const ChatApp = (props) => {
                 .collection('USERS')
                 .onSnapshot((querySnapshot) => {
                     const threads = querySnapshot.docs.map(item => {
-                        console.log(item?._data, 'item?._dataitem?._data');
+                        // console.log(item?._data, 'item?._dataitem?._data');
                         let obj = {
                             displayName: item?._data?.displayName,
                             email: item?._data?.email,
@@ -73,6 +74,7 @@ const ChatApp = (props) => {
                         type: "SAVE_ALL_USERS",
                         payload: threads,
                     });
+                    setAllusers(threads)
                 })
         return () => unsubscribe()
     }, [])
@@ -80,7 +82,7 @@ const ChatApp = (props) => {
     useLayoutEffect(() => {
         const _clone = fullChat.map((item, index) => {
             const cu = allUsersData.find((val) => val.id == item?.user?.id ? val : null)
-            console.log(cu, "messagesmessagesmessagesmessages", allUsersData);
+            // console.log(cu, "messagesmessagesmessagesmessages", allUsersData);
             if (cu) {
                 item.user = cu
                 item.user.name = item.name
@@ -93,6 +95,13 @@ const ChatApp = (props) => {
             type: "ALL_MESSAGES",
             payload: _clone,
         });
+
+        dispatch({
+            type: "SAVE_ALL_USERS",
+            payload: allUsersData,
+        });
+
+        setAllusers(allUsersData)
 
         const cu = allUsersData.find((val) => val.id == user?.uid ? val : null)
         // setCurrentUserStaus(cu)
@@ -128,53 +137,66 @@ const ChatApp = (props) => {
     // }, [messages])
 
     useEffect(() => {
-        const unsubscribeListener = firestore()
-            .collection('MESSAGE_THREADS')
-            .doc(thread._id)
-            .collection('MESSAGES')
-            .orderBy('createdAt', 'desc')
-            .onSnapshot(querySnapshot => {
-                const _msgs = querySnapshot.docs.map(doc => {
-                    const firebaseData = doc.data()
+        console.log(allusers, "firebaseData 1");
+    }, [allusers])
 
-                    const cu = allUsersData.find((val) => val._id == doc?._data?.user?._id ? val : null)
-                    console.log(cu, "cucucucucucucucu", allUsersData);
-                    let data = {}
-                    if (cu) {
-                        // console.log(cu, " allmessages 222222");
-                        data = {
-                            _id: doc?.id,
-                            createdAt: new Date().getTime(),
-                            // displayName: firebaseData?.displayName,
-                            // name: firebaseData?.name,
-                            // text: firebaseData?.text,
+    function _getCurrentUser(msgId) {
+        const cu = allusers.find((val) => val._id == msgId ? val : null)
+        return cu
+    }
 
-                            displayName: cu?.displayName,
-                            name: cu?.name,
-                            text: cu?.text,
-                            ...firebaseData,
-                            user: {
-                                ...cu,
-                                name: cu?.displayName
-                            },
-                            isSelected: false
+    useEffect(() => {
+        const unsubscribeListener =
+            firestore()
+                .collection('MESSAGE_THREADS')
+                .doc(thread._id)
+                .collection('MESSAGES')
+                .orderBy('createdAt', 'desc')
+                .onSnapshot(querySnapshot => {
+                    const _msgs = querySnapshot.docs.map(doc => {
+                        const firebaseData = doc.data()
+
+                        // const cu = allusers.find((val) => val._id == doc?._data?.user?._id ? val : null)
+
+                        const cu = _getCurrentUser(doc?._data?.user?._id)
+                        console.log(cu, "firebaseData", allusers);
+
+                        let data = {}
+                        if (cu) {
+                            // console.log(cu, " allmessages 222222");
+                            data = {
+                                _id: doc?.id,
+                                createdAt: new Date().getTime(),
+                                // displayName: firebaseData?.displayName,
+                                // name: firebaseData?.name,
+                                // text: firebaseData?.text,
+
+                                displayName: cu?.displayName,
+                                name: cu?.name,
+                                text: cu?.text,
+                                ...firebaseData,
+                                user: {
+                                    ...cu,
+                                    name: cu?.displayName
+                                },
+                                isSelected: false
+                            }
                         }
-                    }
 
-                    console.log(data, " allmessages 444444");
+                        console.log(firebaseData, "gdfgdsfgdsffgdfsg");
 
-                    return data;
+                        return data;
+                    })
+                    console.log(_msgs, "allmessages 5555555");
+
+                    dispatch({
+                        type: "ALL_MESSAGES",
+                        payload: _msgs,
+                    });
+
+
+                    // setMessages(messages)
                 })
-                console.log(_msgs, "allmessages 5555555");
-
-                dispatch({
-                    type: "ALL_MESSAGES",
-                    payload: _msgs,
-                });
-
-
-                // setMessages(messages)
-            })
         return () => unsubscribeListener()
     }, [])
 
@@ -193,8 +215,8 @@ const ChatApp = (props) => {
         //     GiftedChat.append(previousMessages, messages),
         // );
 
-        const cu = allUsersData.find((val) => val.id == user?.uid ? val : null)
-        console.log(cu, 'cucucucu', allUsersData);
+        const cu = allusers.find((val) => val.id == user?.uid ?? val)
+        console.log(cu, 'cucucucu', allusers);
         // firestore()
         //     .collection('USERS')
         //     .doc(user.uid)
@@ -206,15 +228,14 @@ const ChatApp = (props) => {
         const obj = {
             text,
             createdAt: new Date().getTime(),
-            name: userDa?.displayName || userDa?.email,
-            displayName: userDa?.displayName || userDa?.email,
-            isSelected: false,
+            // name: userDa?.displayName || userDa?.email,
+            // displayName: userDa?.displayName || userDa?.email,
+            // isSelected: false,
             user: {
                 _id: userDa._id,
-                displayName: userDa?.displayName || userDa?.email,
-                name: userDa?.displayName || userDa?.email,
-                // avatar: userDa?.photoURL,
-                avatar: userDa?.avatar,
+                // displayName: userDa?.displayName || userDa?.email,
+                // name: userDa?.displayName || userDa?.email,
+                // avatar: userDa?.avatar,
             }
         }
 
@@ -342,7 +363,7 @@ const ChatApp = (props) => {
                     ref={msgListRef}
                     inverted
                     renderItem={({ item, index }) => {
-                        console.log(item, "itemitem");
+                        // console.log(item, "itemitem");
                         return (
                             <TouchableOpacity
                                 style={{
@@ -531,6 +552,7 @@ const ChatApp = (props) => {
                     }}>{"Blocked!, you can't send message to in this chat."}</Text>
                 }
 
+
                 {/* <GiftedChat
                     messages={fullChat}
                     onSend={messages => onSend(messages)}
@@ -543,7 +565,7 @@ const ChatApp = (props) => {
                         color: "black"
                     }}
                 // disableComposer={surrentUserStatus?.isBlocked}
-                /> */}
+                />   */}
 
                 {/* <Text style={{ fontSize: 24 }}>{"Is Blocked :- " + surrentUserStatus?.isBlocked}</Text> */}
             </SafeAreaView>
